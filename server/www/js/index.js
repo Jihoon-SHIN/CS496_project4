@@ -8,13 +8,13 @@ function makeRandomName() {
 }
 
 var socket = io();
-var playerList = {};
+//var playerList = {};
 
 socket.on("login", function(data){
-  //new avatar
-  var name = data.name;
-  playerList[name] = new Avatar(data.name, data.gender, data.skinTone, data.x, data.y);
-  console.log(playerList[name]);
+  var userid = data.userid;
+  worldObjs.push(new Avatar(data.userid, data.name, data.gender, data.skinTone, data.x, data.y));
+  console.log(userid);
+  //console.log(playerList[userid]);
 });
 
 socket.on("chat", function(data){
@@ -349,10 +349,15 @@ start = function() {
   runDisplay();
 };
 
-player = new Avatar("Player", 0, 0, w / 2 - 15, h * 0.8 - chatBar.barH);
+var userid = makeRandomName();
+var player = new Avatar(userid, "Player", 0, 0, w / 2 - 15, h * 0.8 - chatBar.barH);
 socket.emit("login", {
+  userid: userid,
   name: player.name,
-  userid: "id"
+  gender: player.gender,
+  skinTone: player.skinTone,
+  x: player.x,
+  y: player.y
 });
 start();
 

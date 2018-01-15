@@ -1,5 +1,6 @@
-function Avatar(name, gender, skinTone, x, y) {
+function Avatar(userid, name, gender, skinTone, x, y) {
   let nameLenLimit = 16;
+  this.userid = userid;
   this.name = name.length > nameLenLimit ? name.substr(0, nameLenLimit) : name || "Anonymous";
   this.gender = gender || 0;
   this.skinTone = skinTone || 0;
