@@ -1,5 +1,6 @@
-function Avatar(userid, name, gender, skinTone, x, y) {
+function Avatar(userid, name, gender, skinTone, x, y, curFrame, dir, isSelf) {
   let nameLenLimit = 16;
+  this.isSelf = isSelf;
   this.userid = userid;
   this.name = name.length > nameLenLimit ? name.substr(0, nameLenLimit) : name || "Anonymous";
   this.gender = gender || 0;
@@ -7,9 +8,9 @@ function Avatar(userid, name, gender, skinTone, x, y) {
   this.w = 30;
   this.h = 60;
   this.speed = 4;
-  this.curFrame = 1;
+  this.curFrame = curFrame;
   this.frames = 28;
-  this.dir = 2;
+  this.dir = dir;
   this.isMoving = false;
   this.canMove = true;
   this.x = x || 0;
@@ -144,6 +145,14 @@ function Avatar(userid, name, gender, skinTone, x, y) {
     } else {
       this.curFrame = 1;
     }
+
+    socket.emit('move', {
+      userid: this.userid,
+      x: this.x,
+      y: this.y,
+      dir: this.dir,
+      curFrame: this.curFrame
+    });
   };
   this.drawAvatar = function() {
     let lastMsg = this.lastMsg;
@@ -256,5 +265,11 @@ function Avatar(userid, name, gender, skinTone, x, y) {
     ctx.fillText(this.name, this.x + this.w / 2, this.y + 4);
     ctx.fillStyle = this.name == player.name ? "#ff4" : "#fff";
     ctx.fillText(this.name, this.x + this.w / 2, this.y + 3);
+  };
+  this.setState = function(data){
+    this.x = data.x;
+    this.y = data.y;
+    this.dir = data.dir;
+    this.curFrame = data.curFrame;
   };
 }

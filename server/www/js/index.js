@@ -7,14 +7,21 @@ function makeRandomName() {
   return name;
 }
 
+function findPlayerById(userid){
+  for(var p in worldObjs){
+    if(worldObjs[p].userid === userid){
+      return worldObjs[p];
+    }
+  }
+}
+
 var socket = io();
-//var playerList = {};
 
 socket.on("login", function(data){
   var userid = data.userid;
-  worldObjs.push(new Avatar(data.userid, data.name, data.gender, data.skinTone, data.x, data.y));
+  worldObjs.push(new Avatar(data.userid, data.name, data.gender, data.skinTone,
+    data.x, data.y, data.curFrame, data.dir, false));
   console.log(userid);
-  //console.log(playerList[userid]);
 });
 
 socket.on("chat", function(data){
@@ -23,6 +30,11 @@ socket.on("chat", function(data){
 
 socket.on("logout", function(data){
 
+});
+
+socket.on('move', function(data){
+  let movingPlayer = findPlayerById(data.userid);
+  movingPlayer.setState(data);
 });
 
 //when chats
@@ -198,7 +210,6 @@ structure = function(width, height, x, y, backArea, img, isAnim, frames) {
 randNum = function(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 },
-
 structures = [
   new structure(w, 50, 0, -40),
   new structure(10, h - chatBar.barH - 10, 0, 10),
@@ -311,8 +322,10 @@ drawScreen = function() {
   for (var wo in worldObjs) {
     // to determine if avatar, test for name
     if (worldObjs[wo].name) {
+      if(worldObjs[wo].isSelf){
+        worldObjs[wo].moveAvatar();
+      }
       worldObjs[wo].drawAvatar();
-      worldObjs[wo].moveAvatar();
     } else {
       drawStructure(worldObjs[wo]);
     }
@@ -329,7 +342,7 @@ runDisplay = function() {
 start = function() {
   chatBar.create();
   // load player and NPCs
-  worldObjs[0] = player;
+
   // load structures
   let avatars = worldObjs.length;
   for (var ss in structures) {
@@ -350,14 +363,19 @@ start = function() {
 };
 
 var userid = makeRandomName();
-var player = new Avatar(userid, "Player", 0, 0, w / 2 - 15, h * 0.8 - chatBar.barH);
+
+var player = new Avatar(userid, "Player", 0, 0, randNum(10, w-10),
+  randNum(10, h-30), 1, dir=2, isSelf=true);
+worldObjs[0] = player;
 socket.emit("login", {
   userid: userid,
   name: player.name,
   gender: player.gender,
   skinTone: player.skinTone,
   x: player.x,
-  y: player.y
+  y: player.y,
+  curFrame: player.curFrame,
+  dir: player.dir
 });
 start();
 

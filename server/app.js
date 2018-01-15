@@ -22,18 +22,23 @@ io.on('connection', function(socket){
     socket.broadcast.emit('login', data);
 
     for(var player in playerList){
-      var playerData = playerList[player]
+      var playerData = playerList[player];
       socket.emit("login", {
         userid: player,
         name: playerData.name,
         gender: playerData.gender,
         skinTone: playerData.skinTone,
         x: playerData.x,
-        y: playerData.y
+        y: playerData.y,
+        curFrame: playerData.curFrame,
+        dir: playerData.dir
       });
     }
-
     playerList[socket.userid] = data;
+  });
+
+  socket.on('move', function(data){
+    socket.broadcast.emit('move', data);
   });
 
   socket.on('chat', function (data) {
