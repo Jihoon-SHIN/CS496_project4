@@ -1,4 +1,4 @@
-function Avatar(name, gender, skinTone, width, height, speed, frames, dir, x, y, ctx) {
+function Avatar(name, gender, skinTone, width, height, speed, frames, dir, x, y) {
   let nameLenLimit = 16;
   this.name = name.length > nameLenLimit ? name.substr(0, nameLenLimit) : name || "Anonymous";
   this.gender = gender || 0;
@@ -17,7 +17,6 @@ function Avatar(name, gender, skinTone, width, height, speed, frames, dir, x, y,
   this.msgTimer = 0;
   this.msgMaxTime = 3000;
   this.msgFadeTime = 150;
-  this.ctx = ctx;
   this.sendMsg = function(msg) {
     if (msg.length > 0) {
       let isCmd = false;
@@ -105,7 +104,7 @@ function Avatar(name, gender, skinTone, width, height, speed, frames, dir, x, y,
             this.x += this.speed;
             this.curFrame = 1;
           } else {
-            avatarSpriteLoop();
+            this.avatarSpriteLoop();
           }
           break;
         case 0:
@@ -115,7 +114,7 @@ function Avatar(name, gender, skinTone, width, height, speed, frames, dir, x, y,
             this.y += this.speed;
             this.curFrame = 1;
           } else {
-            avatarSpriteLoop();
+            this.avatarSpriteLoop();
           }
           break;
         case 1:
@@ -125,7 +124,7 @@ function Avatar(name, gender, skinTone, width, height, speed, frames, dir, x, y,
             this.x -= this.speed;
             this.curFrame = 1;
           } else {
-            avatarSpriteLoop();
+            this.avatarSpriteLoop();
           }
           break;
         case 2:
@@ -135,7 +134,7 @@ function Avatar(name, gender, skinTone, width, height, speed, frames, dir, x, y,
             this.y -= this.speed;
             this.curFrame = 1;
           } else {
-            avatarSpriteLoop();
+            this.avatarSpriteLoop();
           }
           break;
         default:
@@ -185,43 +184,43 @@ function Avatar(name, gender, skinTone, width, height, speed, frames, dir, x, y,
       // fade in
       let msgTimeFwd = this.msgMaxTime - this.msgTimer;
       if (msgTimeFwd < fadeTime) {
-        this.ctx.globalAlpha = msgTimeFwd / fadeTime;
+        ctx.globalAlpha = msgTimeFwd / fadeTime;
       }
       // fade out
       if (this.msgTimer < fadeTime) {
-        this.ctx.globalAlpha = this.msgTimer / fadeTime;
+        ctx.globalAlpha = this.msgTimer / fadeTime;
       }
       let wMult = !isNotLatin ? 0.7 : 1.2,
         bubble = new bubbleObj(lastMsg, longestLnLen * fontS * wMult, this.x + this.w / 2, this.y - this.h - 35);
 
-      this.ctx.fillStyle = "rgba(255,255,255,0.85)";
+      ctx.fillStyle = "rgba(255,255,255,0.85)";
       // oval
-      this.ctx.beginPath();
+      ctx.beginPath();
       let bubbleY = bubble.y - (fontS * (lines - 1)),
         bubbleH = fontS * 3 * lines,
         bottomLnSt = (fontS * 0.6) * (lines - 1);
       // top half
-      this.ctx.moveTo(bubble.x - bubble.w / 2, bubbleY);
-      this.ctx.bezierCurveTo(bubble.x - bubble.w / 2, bubbleY - bubbleH / 2, (bubble.x - bubble.w / 2) + bubble.w, bubbleY - bubbleH / 2, (bubble.x - bubble.w / 2) + bubble.w, bubbleY);
+      ctx.moveTo(bubble.x - bubble.w / 2, bubbleY);
+      ctx.bezierCurveTo(bubble.x - bubble.w / 2, bubbleY - bubbleH / 2, (bubble.x - bubble.w / 2) + bubble.w, bubbleY - bubbleH / 2, (bubble.x - bubble.w / 2) + bubble.w, bubbleY);
       // bottom half
-      this.ctx.moveTo(bubble.x - bubble.w / 2, bubbleY);
-      this.ctx.quadraticCurveTo(bubble.x - bubble.w / 2, bubbleY + bubbleH / 4, bubble.x - 5, bubbleY + bubbleH / 3);
-      this.ctx.lineTo(bubble.x, bubbleY + (fontS * 2 * lines) - (fontS * (lines - 1)));
-      this.ctx.lineTo(bubble.x + 5, bubbleY + bubbleH / 3);
-      this.ctx.quadraticCurveTo(bubble.x + bubble.w / 2, bubbleY + bubbleH / 4, bubble.x + bubble.w / 2, bubbleY);
-      this.ctx.fill();
-      this.ctx.closePath();
+      ctx.moveTo(bubble.x - bubble.w / 2, bubbleY);
+      ctx.quadraticCurveTo(bubble.x - bubble.w / 2, bubbleY + bubbleH / 4, bubble.x - 5, bubbleY + bubbleH / 3);
+      ctx.lineTo(bubble.x, bubbleY + (fontS * 2 * lines) - (fontS * (lines - 1)));
+      ctx.lineTo(bubble.x + 5, bubbleY + bubbleH / 3);
+      ctx.quadraticCurveTo(bubble.x + bubble.w / 2, bubbleY + bubbleH / 4, bubble.x + bubble.w / 2, bubbleY);
+      ctx.fill();
+      ctx.closePath();
       // text
-      this.ctx.fillStyle = "#000";
-      this.ctx.textAlign = "center";
-      this.ctx.textBaseline = "middle";
-      this.ctx.font = fontS + "px Arial";
+      ctx.fillStyle = "#000";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = fontS + "px Arial";
       // write each line on bubble
       for (var bl in line) {
         bl = +bl;
-        this.ctx.fillText(line[line.length - 1 - bl], bubble.x, bubbleY + bottomLnSt - ((fontS * 1.2) * bl));
+        ctx.fillText(line[line.length - 1 - bl], bubble.x, bubbleY + bottomLnSt - ((fontS * 1.2) * bl));
       }
-      this.ctx.globalAlpha = 1;
+      ctx.globalAlpha = 1;
 
       this.msgTimer -= 1000 / 60;
       if (this.msgTimer < 0) {
@@ -229,16 +228,16 @@ function Avatar(name, gender, skinTone, width, height, speed, frames, dir, x, y,
       }
     }
     // avatar shadow
-    this.ctx.fillStyle = "rgba(0,0,0,0.25)";
-    this.ctx.beginPath();
-    this.ctx.moveTo(this.x, this.y);
-    this.ctx.bezierCurveTo(this.x + this.w / 5, this.y - this.w / 3, this.x + this.w / (5 / 4), this.y - this.w / 3, this.x + this.w, this.y);
-    this.ctx.moveTo(this.x, this.y);
-    this.ctx.bezierCurveTo(this.x + this.w / 5, this.y + this.w / 3, this.x + this.w / (5 / 4), this.y + this.w / 3, this.x + this.w, this.y);
-    this.ctx.fill();
-    this.ctx.closePath();
+    ctx.fillStyle = "rgba(0,0,0,0.25)";
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y);
+    ctx.bezierCurveTo(this.x + this.w / 5, this.y - this.w / 3, this.x + this.w / (5 / 4), this.y - this.w / 3, this.x + this.w, this.y);
+    ctx.moveTo(this.x, this.y);
+    ctx.bezierCurveTo(this.x + this.w / 5, this.y + this.w / 3, this.x + this.w / (5 / 4), this.y + this.w / 3, this.x + this.w, this.y);
+    ctx.fill();
+    ctx.closePath();
     // avatar
-    this.ctx.drawImage(
+    ctx.drawImage(
       this.gender == 1 ? window.images[3] : window.images[2],
       this.w * (this.curFrame - 1) + (this.w * this.frames * this.dir),
       this.h * this.skinTone,
@@ -250,11 +249,11 @@ function Avatar(name, gender, skinTone, width, height, speed, frames, dir, x, y,
       this.h
     );
     // name
-    this.ctx.textAlign = "center";
-    this.ctx.textBaseline = "top";
-    this.ctx.font = "14px Arial";
-    this.ctx.fillText(this.name, this.x + this.w / 2, this.y + 4);
-    this.ctx.fillStyle = this.name == player.name ? "#ff4" : "#fff";
-    this.ctx.fillText(this.name, this.x + this.w / 2, this.y + 3);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.font = "14px Arial";
+    ctx.fillText(this.name, this.x + this.w / 2, this.y + 4);
+    ctx.fillStyle = this.name == player.name ? "#ff4" : "#fff";
+    ctx.fillText(this.name, this.x + this.w / 2, this.y + 3);
   };
 }
