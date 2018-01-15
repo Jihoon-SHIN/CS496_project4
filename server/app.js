@@ -38,7 +38,12 @@ io.on('connection', function(socket){
   });
 
   socket.on('move', function(data){
+    //console.log("move", data);
     socket.broadcast.emit('move', data);
+  });
+
+  socket.on('genUserId', function(){
+    socket.emit('genUserId', Object.keys(playerList).length+1);
   });
 
   socket.on('chat', function (data) {
