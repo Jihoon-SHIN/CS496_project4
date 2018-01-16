@@ -1,3 +1,20 @@
+function findPlayerById(userid){
+  for(var p in worldObjs){
+    if(worldObjs[p].userid == userid){
+      return worldObjs[p];
+    }
+  }
+}
+
+function removePlayerById(userid){
+  for(var p in worldObjs){
+    if(worldObjs[p].userid == userid){
+      worldObjs.splice(p, 1);
+      return;
+    }
+  }
+}
+
 function makeRandomName() {
   var name = "";
   var possible = "abcdefghijklmnopqrstuvwxyz";
@@ -8,38 +25,44 @@ function makeRandomName() {
 }
 
 var socket = io();
-var playerList = {};
 
 socket.on("login", function(data){
-  //new avatar
-  var name = data.name;
-  playerList[name] = new Avatar(data.name, data.gender, data.skinTone, data.x, data.y);
-  console.log(playerList[name]);
+  var userid = data.userid;
+  worldObjs.push(new Avatar(data.userid, data.name, data.gender, data.skinTone,
+    data.x, data.y, data.curFrame, data.dir, false));
+  console.log(userid);
 });
 
 socket.on("chat", function(data){
   //show chat
+  let chatPlayer = findPlayerById(data.userid);
+  console.log(data.chat);
+  if(chatPlayer){
+    chatPlayer.sendMsg(data.chat);
+    chatBar.history.push(data.chat);
+  }else{
+    console.log(data.userid+":user not found333333");
+  }
 });
 
-socket.on("logout", function(data){
-
+socket.on("logout", function(userid){
+  console.log(userid+"logged out");
+  removePlayerById(userid);
 });
 
-//when chats
-/*
-$("form").submit(function(e){
-  e.preventDefault();
-  var $msgForm = $("#msgForm");
-
-  socket.emit("chat", {msg:$msgForm.val()});
-  $msgForm.val("");
+socket.on('move', function(data){
+  let movingPlayer = findPlayerById(data.userid);
+  if(movingPlayer){
+    movingPlayer.setState(data);
+  } else {
+    console.log(data.userid + ": user not found");
+  }
 });
-*/
 
 var canvas = document.getElementsByTagName("canvas")[0],
   // canvas dimensions
   w = 1500,
-  h = 940,
+  h = 900,
   // scale, keep at 2 for best retina results
   s = 2;
 var ctx = canvas.getContext("2d");
@@ -198,7 +221,6 @@ structure = function(width, height, x, y, backArea, img, isAnim, frames) {
 randNum = function(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 },
-
 structures = [
   new structure(w, 50, 0, -40),
   new structure(10, h - chatBar.barH - 10, 0, 10),
@@ -311,8 +333,10 @@ drawScreen = function() {
   for (var wo in worldObjs) {
     // to determine if avatar, test for name
     if (worldObjs[wo].name) {
+      if(worldObjs[wo].isSelf){
+        worldObjs[wo].moveAvatar();
+      }
       worldObjs[wo].drawAvatar();
-      worldObjs[wo].moveAvatar();
     } else {
       drawStructure(worldObjs[wo]);
     }
@@ -329,7 +353,7 @@ runDisplay = function() {
 start = function() {
   chatBar.create();
   // load player and NPCs
-  worldObjs[0] = player;
+
   // load structures
   let avatars = worldObjs.length;
   for (var ss in structures) {
@@ -349,102 +373,121 @@ start = function() {
   runDisplay();
 };
 
-player = new Avatar("Player", 0, 0, w / 2 - 15, h * 0.8 - chatBar.barH);
-socket.emit("login", {
-  name: player.name,
-  userid: "id"
-});
-start();
+socket.on('genUserId', function(id) {
+  player = new Avatar(id, makeRandomName(), 0, 0, randNum(10, w-10),
+    randNum(10, h-30), 1, dir=2, isSelf=true);
+  worldObjs[0] = player;
+  socket.emit("login", {
+    userid: id,
+    name: player.name,
+    gender: player.gender,
+    skinTone: player.skinTone,
+    x: player.x,
+    y: player.y,
+    curFrame: player.curFrame,
+    dir: player.dir
+  });
+  start();
 
-// player moving
-document.addEventListener("keydown", function(e) {
-  let field = document.querySelector("input"),
-    send = document.querySelector(".send"),
-    viewChat = document.querySelector(".view-chat");
 
-  // Send button availability
-  setTimeout(function() {
-    send.disabled = field.value.length > 0 ? "" : "disabled";
-  }, 10);
+  // player moving
+  document.addEventListener("keydown", function(e) {
+    let field = document.querySelector("input"),
+      send = document.querySelector(".send"),
+      viewChat = document.querySelector(".view-chat");
 
-  // move only if not using chat
-  if (!chatBar.active) {
-    control(player, e);
+    // Send button availability
+    setTimeout(function() {
+      send.disabled = field.value.length > 0 ? "" : "disabled";
+    }, 10);
 
-    // surf through own input history
-  } else if (chatBar.history.length > 0) {
-    // back
-    if (e.keyCode == 38 && chatBar.curHistoryItem != chatBar.history.length - 1) {
-      ++chatBar.curHistoryItem;
-      field.value = chatBar.history[chatBar.history.length - chatBar.curHistoryItem - 1];
-      // move insertion point to end
-      e.preventDefault();
-      if (typeof field.selectionStart == "number") {
-        field.selectionStart = field.selectionEnd = field.value.length;
-      } else if (typeof field.createTextRange != "undefined") {
-        field.focus();
-        let range = field.createTextRange();
-        range.collapse(true);
-        range.select();
+    // move only if not using chat
+    if (!chatBar.active) {
+      control(player, e);
+
+      // surf through own input history
+    } else if (chatBar.history.length > 0) {
+      // back
+      if (e.keyCode == 38 && chatBar.curHistoryItem != chatBar.history.length - 1) {
+        ++chatBar.curHistoryItem;
+        field.value = chatBar.history[chatBar.history.length - chatBar.curHistoryItem - 1];
+        // move insertion point to end
+        e.preventDefault();
+        if (typeof field.selectionStart == "number") {
+          field.selectionStart = field.selectionEnd = field.value.length;
+        } else if (typeof field.createTextRange != "undefined") {
+          field.focus();
+          let range = field.createTextRange();
+          range.collapse(true);
+          range.select();
+        }
+        // forward
+      } else if (e.keyCode == 40 && chatBar.curHistoryItem > -1) {
+        --chatBar.curHistoryItem;
+        field.value = chatBar.curHistoryItem == -1 ? "" : chatBar.history[chatBar.history.length - chatBar.curHistoryItem - 1];
       }
-      // forward
-    } else if (e.keyCode == 40 && chatBar.curHistoryItem > -1) {
-      --chatBar.curHistoryItem;
-      field.value = chatBar.curHistoryItem == -1 ? "" : chatBar.history[chatBar.history.length - chatBar.curHistoryItem - 1];
     }
-  }
 
-  // toggle chat with V
-  if (e.keyCode == 86 && !chatBar.active) {
+    // toggle chat with V
+    if (e.keyCode == 86 && !chatBar.active) {
+      e.preventDefault();
+      chatBar.logToggle();
+
+      // quickly start typing command
+    } else if (e.keyCode == 191 && !chatBar.active) {
+      field.value = "";
+      chatBar.logToggle();
+
+      // close chat using Esc
+    } else if (e.keyCode == 27) {
+      chatBar.active = false;
+      chatBar.logHide();
+      field.blur();
+      send.blur();
+      viewChat.blur();
+    }
+  });
+  // player stop moving
+  document.addEventListener("keyup", function() {
+    stopControl(player);
+  });
+  // player send chat messages
+  document.querySelector("input").addEventListener("focus", function() {
+    chatBar.active = true;
+  });
+  document.querySelector("input").addEventListener("blur", function() {
+    chatBar.active = false;
+  });
+  document.querySelector(".send").addEventListener("click", function(e) {
+    e.preventDefault();
+    let field = document.querySelector("input");
+
+    if (field.value.length > 0) {
+      player.sendMsg(field.value);
+
+      socket.emit("chat", {
+        userid: player.userid,
+        chat : field.value
+      });
+
+      chatBar.history.push(field.value);
+      chatBar.curHistoryItem = -1;
+      if (!chatBar.showLog) {
+        chatBar.active = false;
+        field.blur();
+      }
+    }
+    field.value = "";
+  });
+  // show/hide chat using button
+  document.querySelector(".view-chat").addEventListener("click", function(e) {
     e.preventDefault();
     chatBar.logToggle();
-
-    // quickly start typing command
-  } else if (e.keyCode == 191 && !chatBar.active) {
-    field.value = "";
-    chatBar.logToggle();
-
-    // close chat using Esc
-  } else if (e.keyCode == 27) {
-    chatBar.active = false;
+  });
+  // also hide log if clicked outside
+  canvas.addEventListener("click", function() {
     chatBar.logHide();
-    field.blur();
-    send.blur();
-    viewChat.blur();
-  }
+  });
 });
-// player stop moving
-document.addEventListener("keyup", function() {
-  stopControl(player);
-});
-// player send chat messages
-document.querySelector("input").addEventListener("focus", function() {
-  chatBar.active = true;
-});
-document.querySelector("input").addEventListener("blur", function() {
-  chatBar.active = false;
-});
-document.querySelector(".send").addEventListener("click", function(e) {
-  e.preventDefault();
-  let field = document.querySelector("input");
 
-  if (field.value.length > 0) {
-    player.sendMsg(field.value);
-    chatBar.history.push(field.value);
-    chatBar.curHistoryItem = -1;
-    if (!chatBar.showLog) {
-      chatBar.active = false;
-      field.blur();
-    }
-  }
-  field.value = "";
-});
-// show/hide chat using button
-document.querySelector(".view-chat").addEventListener("click", function(e) {
-  e.preventDefault();
-  chatBar.logToggle();
-});
-// also hide log if clicked outside
-canvas.addEventListener("click", function() {
-  chatBar.logHide();
-});
+socket.emit('genUserId', null);

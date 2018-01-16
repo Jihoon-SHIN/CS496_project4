@@ -4,22 +4,13 @@ var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 
-app.use(express.static(__dirname+'/www'));
+app.use(express.static(__dirname+'/chatroom_client'));
 
 server.listen(3000, function () {
   console.log('Socket IO server listening on port 3000');
 });
 
-var playerList = {};
-
-function makeRandomName() {
-  var name = "";
-  var possible = "abcdefghijklmnopqrstuvwxyz";
-  for(var i = 0; i<3; i++){
-    name += possible.charAt(Math.floor(Math.random()*possible.length));
-  }
-  return name;
-}
+var playerList = {}, maxPlayerNum=0;
 
 io.on('connection', function(socket){
   socket.on('login', function(data){
@@ -27,7 +18,6 @@ io.on('connection', function(socket){
 
     socket.name = data.name;
     socket.userid = data.userid;
-
     socket.broadcast.emit('login', data);
 
     for(var player in playerList){
@@ -47,17 +37,16 @@ io.on('connection', function(socket){
   });
 
   socket.on('move', function(data){
-    //console.log("move", data);
     socket.broadcast.emit('move', data);
   });
 
   socket.on('genUserId', function(){
-    socket.emit('genUserId', Object.keys(playerList).length+1);
+    maxPlayerNum++;
+    socket.emit('genUserId', maxPlayerNum);
   });
 
   socket.on('chat', function (data) {
-    console.log('Messsage from %s', data.userid);
-    console.log('Messsage from %s', data.chat);
+    console.log('Messsage from '+ data.userid+' : '+data.chat);
     socket.broadcast.emit('chat', data);
   });
 
@@ -67,7 +56,6 @@ io.on('connection', function(socket){
 
   socket.on('disconnect', function () {
     console.log('user disconnected: '+socket.name);
-    //playerList.splice(socket.userid, 1);
     delete playerList[socket.userid];
     io.emit('logout', socket.userid);
   });
