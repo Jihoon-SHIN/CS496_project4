@@ -16,11 +16,18 @@ function removePlayerById(userid){
 }
 
 function makeRandomName() {
-  var name = "";
+  var adjectiveList = ["웃는", "기쁜", "슬픈", "우울한", "멋진", "섹시한", "못생긴", "착한", "나쁜", "즐거운", "외로운", "인싸", "아싸"];
+  var nameList = ["고양이", "호랑이", "사자", "강아지", "카이생", "돌멩이", "하이에나", "토끼", "다람쥐", "햄스터", "돼지", "들소", "알파카"];
+  var adjectiveIndex = randNum(0, adjectiveList.length-1);
+  var nameIndex = randNum(0, nameList.length-1);
+  console.log(adjectiveIndex, nameIndex);
+  var name = adjectiveList[adjectiveIndex]+" "+nameList[nameIndex];
+  /*
   var possible = "abcdefghijklmnopqrstuvwxyz";
   for(var i = 0; i<3; i++){
     name += possible.charAt(Math.floor(Math.random()*possible.length));
   }
+  return name;*/
   return name;
 }
 
@@ -173,7 +180,6 @@ var chatBar = {
     btn2.appendChild(document.createTextNode("View Chat"));
   }
 },
-
 screenText = {
   text: "",
   color: "#fff",

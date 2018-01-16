@@ -10,20 +10,32 @@ server.listen(3000, function () {
   console.log('Socket IO server listening on port 3000');
 });
 
-var playerList = {}, maxPlayerNum=0;
+var playerList = {};
 
 io.on('connection', function(socket){
   socket.on('login', function(data){
-    console.log("Client logged-in:\n name:"+data.name+"\n userid: "+data.userid);
+
+    function chkNameDuplicated(name){
+      for(var p in playerList)
+        if(playerList[p].name == name)
+          return true;
+      return false;
+    }
+
+    if(chkNameDuplicated(data.name)){
+      console.log("Name "+data.name+" duplicate");
+      socket.emit('rejectName', null);
+      return;
+    }
+
+    console.log("Client logged-in:\n name:"+data.name+"\n socket id: "+socket.id);
 
     socket.name = data.name;
-    socket.userid = data.userid;
     socket.broadcast.emit('login', data);
 
-    for(var player in playerList){
-      var playerData = playerList[player];
+    for(var socketid in playerList){
+      var playerData = playerList[socketid];
       socket.emit("login", {
-        userid: player,
         name: playerData.name,
         gender: playerData.gender,
         skinTone: playerData.skinTone,
@@ -33,16 +45,11 @@ io.on('connection', function(socket){
         dir: playerData.dir
       });
     }
-    playerList[socket.userid] = data;
+    playerList[socket.id] = data;
   });
 
   socket.on('move', function(data){
     socket.broadcast.emit('move', data);
-  });
-
-  socket.on('genUserId', function(){
-    maxPlayerNum++;
-    socket.emit('genUserId', maxPlayerNum);
   });
 
   socket.on('chat', function (data) {
