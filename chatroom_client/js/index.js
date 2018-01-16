@@ -1,14 +1,14 @@
-function findPlayerById(userid){
+function findPlayerByName(name){
   for(var p in worldObjs){
-    if(worldObjs[p].userid == userid){
+    if(worldObjs[p].name == name){
       return worldObjs[p];
     }
   }
 }
 
-function removePlayerById(userid){
+function removePlayerByName(name){
   for(var p in worldObjs){
-    if(worldObjs[p].userid == userid){
+    if(worldObjs[p].name == name){
       worldObjs.splice(p, 1);
       return;
     }
@@ -22,47 +22,41 @@ function makeRandomName() {
   var nameIndex = randNum(0, nameList.length-1);
   console.log(adjectiveIndex, nameIndex);
   var name = adjectiveList[adjectiveIndex]+" "+nameList[nameIndex];
-  /*
-  var possible = "abcdefghijklmnopqrstuvwxyz";
-  for(var i = 0; i<3; i++){
-    name += possible.charAt(Math.floor(Math.random()*possible.length));
-  }
-  return name;*/
   return name;
 }
 
 var socket = io();
 
-socket.on("login", function(data){
-  var userid = data.userid;
-  worldObjs.push(new Avatar(data.userid, data.name, data.gender, data.skinTone,
-    data.x, data.y, data.curFrame, data.dir, false));
-  console.log(userid);
+socket.on("anotherUser", function(data){
+  worldObjs.push(new Avatar(data.name, data.gender, data.skinTone, data.x,
+    data.y, data.curFrame, data.dir, false));
+  console.log("another User : "+ data.name);
 });
 
 socket.on("chat", function(data){
   //show chat
-  let chatPlayer = findPlayerById(data.userid);
+  let chatPlayer = findPlayerByName(data.name);
   console.log(data.chat);
   if(chatPlayer){
     chatPlayer.sendMsg(data.chat);
     chatBar.history.push(data.chat);
   }else{
-    console.log(data.userid+":user not found333333");
+    console.log(data.name+" : user not found");
   }
 });
 
-socket.on("logout", function(userid){
-  console.log(userid+" logged out");
-  removePlayerById(userid);
+socket.on("logout", function(name){
+  console.log(name+" logged out");
+  removePlayerByName(name);
 });
 
 socket.on('move', function(data){
-  let movingPlayer = findPlayerById(data.userid);
+  let movingPlayer = findPlayerByName(data.name);
+  console.log(movingPlayer);
   if(movingPlayer){
     movingPlayer.setState(data);
   } else {
-    console.log(data.userid + ": user not found");
+    console.log(data.name + ": user not found");
   }
 });
 
@@ -379,12 +373,11 @@ start = function() {
   runDisplay();
 };
 
-socket.on('genUserId', function(id) {
-  player = new Avatar(id, makeRandomName(), 0, 0, randNum(10, w-10),
-    randNum(10, h-30), 1, dir=2, isSelf=true);
+socket.on('loginSuccess', function(name) {
+  player = new Avatar(name, 0, 0, randNum(10, w-10), randNum(10, h-30),
+  1, dir=2, isSelf=true);
   worldObjs[0] = player;
   socket.emit("login", {
-    userid: id,
     name: player.name,
     gender: player.gender,
     skinTone: player.skinTone,
@@ -394,7 +387,6 @@ socket.on('genUserId', function(id) {
     dir: player.dir
   });
   start();
-
 
   // player moving
   document.addEventListener("keydown", function(e) {
@@ -472,7 +464,7 @@ socket.on('genUserId', function(id) {
       player.sendMsg(field.value);
 
       socket.emit("chat", {
-        userid: player.userid,
+        name : player.name,
         chat : field.value
       });
 
@@ -496,4 +488,5 @@ socket.on('genUserId', function(id) {
   });
 });
 
-socket.emit('genUserId', null);
+var name = makeRandomName();
+socket.emit('nameCheck', name);

@@ -1,7 +1,6 @@
-function Avatar(userid, name, gender, skinTone, x, y, curFrame, dir, isSelf) {
+function Avatar(name, gender, skinTone, x, y, curFrame, dir, isSelf) {
   let nameLenLimit = 16;
   this.isSelf = isSelf;
-  this.userid = userid;
   this.name = name.length > nameLenLimit ? name.substr(0, nameLenLimit) : name || "Anonymous";
   this.gender = gender || 0;
   this.skinTone = skinTone || 0;
@@ -147,7 +146,7 @@ function Avatar(userid, name, gender, skinTone, x, y, curFrame, dir, isSelf) {
     }
 
     socket.emit('move', {
-      userid: this.userid,
+      name: this.name,
       x: this.x,
       y: this.y,
       dir: this.dir,

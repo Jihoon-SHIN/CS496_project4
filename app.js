@@ -13,37 +13,32 @@ server.listen(3000, function () {
 var playerList = {};
 
 io.on('connection', function(socket){
-  socket.on('login', function(data){
 
+  socket.on('nameCheck', function(name){
     function chkNameDuplicated(name){
       for(var p in playerList)
         if(playerList[p].name == name)
           return true;
       return false;
     }
-
-    if(chkNameDuplicated(data.name)){
-      console.log("Name "+data.name+" duplicate");
+    if(chkNameDuplicated(name)){
+      console.log("Name "+name+" duplicate");
       socket.emit('rejectName', null);
       return;
     }
+    socket.emit('loginSuccess', name);
+  });
 
+  socket.on('login', function(data){
     console.log("Client logged-in:\n name:"+data.name+"\n socket id: "+socket.id);
 
     socket.name = data.name;
-    socket.broadcast.emit('login', data);
+    socket.broadcast.emit('anotherUser', data);
 
     for(var socketid in playerList){
       var playerData = playerList[socketid];
-      socket.emit("login", {
-        name: playerData.name,
-        gender: playerData.gender,
-        skinTone: playerData.skinTone,
-        x: playerData.x,
-        y: playerData.y,
-        curFrame: playerData.curFrame,
-        dir: playerData.dir
-      });
+      console.log("user already exists : "+playerData.name);
+      socket.emit('anotherUser', playerData);
     }
     playerList[socket.id] = data;
   });
@@ -53,7 +48,7 @@ io.on('connection', function(socket){
   });
 
   socket.on('chat', function (data) {
-    console.log('Messsage from '+ data.userid+' : '+data.chat);
+    console.log('Messsage from '+ data.name+' : '+data.chat);
     socket.broadcast.emit('chat', data);
   });
 
@@ -63,7 +58,7 @@ io.on('connection', function(socket){
 
   socket.on('disconnect', function () {
     console.log('user disconnected: '+socket.name);
-    delete playerList[socket.userid];
-    io.emit('logout', socket.userid);
+    delete playerList[socket.id];
+    io.emit('logout', socket.name);
   });
 });
