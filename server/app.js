@@ -12,6 +12,15 @@ server.listen(3000, function () {
 
 var playerList = {};
 
+function makeRandomName() {
+  var name = "";
+  var possible = "abcdefghijklmnopqrstuvwxyz";
+  for(var i = 0; i<3; i++){
+    name += possible.charAt(Math.floor(Math.random()*possible.length));
+  }
+  return name;
+}
+
 io.on('connection', function(socket){
   socket.on('login', function(data){
     console.log("Client logged-in:\n name:"+data.name+"\n userid: "+data.userid);
@@ -47,16 +56,9 @@ io.on('connection', function(socket){
   });
 
   socket.on('chat', function (data) {
-    console.log('Messsage from %s: %s', socket.name, data.msg);
-
-    var msg ={
-      from: {
-        name: socket.name,
-        userid: socket.userid
-      },
-      msg: data.msg
-    };
-    //socket.broadcast.emit('chat', msg);
+    console.log('Messsage from %s', data.userid);
+    console.log('Messsage from %s', data.chat);
+    socket.broadcast.emit('chat', data);
   });
 
   socket.on('forceDisconnect', function () {

@@ -26,6 +26,14 @@ socket.on("login", function(data){
 
 socket.on("chat", function(data){
   //show chat
+  let chatPlayer = findPlayerById(data.userid);
+  console.log(data.chat);
+  if(chatPlayer){
+    chatPlayer.sendMsg(data.chat);
+    chatBar.history.push(data.chat);
+  }else{
+    console.log(data.userid+":user not found333333");
+  }
 });
 
 socket.on("logout", function(data){
@@ -41,7 +49,7 @@ socket.on('move', function(data){
   }
 });
 
-//when chats
+// when chats
 /*
 $("form").submit(function(e){
   e.preventDefault();
@@ -51,6 +59,7 @@ $("form").submit(function(e){
   $msgForm.val("");
 });
 */
+
 
 var canvas = document.getElementsByTagName("canvas")[0],
   // canvas dimensions
@@ -367,7 +376,7 @@ start = function() {
 };
 
 socket.on('genUserId', function(id) {
-  player = new Avatar(id, "Player", 0, 0, randNum(10, w-10),
+  player = new Avatar(id, makeRandomName(), 0, 0, randNum(10, w-10),
     randNum(10, h-30), 1, dir=2, isSelf=true);
   worldObjs[0] = player;
   socket.emit("login", {
@@ -457,6 +466,12 @@ socket.on('genUserId', function(id) {
 
     if (field.value.length > 0) {
       player.sendMsg(field.value);
+
+      socket.emit("chat", {
+        userid: player.userid,
+        chat : field.value
+      });
+
       chatBar.history.push(field.value);
       chatBar.curHistoryItem = -1;
       if (!chatBar.showLog) {
