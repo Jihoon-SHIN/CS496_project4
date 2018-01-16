@@ -67,5 +67,8 @@ io.on('connection', function(socket){
 
   socket.on('disconnect', function () {
     console.log('user disconnected: '+socket.name);
+    //playerList.splice(socket.userid, 1);
+    delete playerList[socket.userid];
+    io.emit('logout', socket.userid);
   });
 });

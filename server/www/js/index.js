@@ -15,6 +15,15 @@ function findPlayerById(userid){
   }
 }
 
+function removePlayerById(userid){
+  for(var p in worldObjs){
+    if(worldObjs[p].userid == userid){
+      worldObjs.splice(p, 1);
+      return;
+    }
+  }
+}
+
 var socket = io();
 
 socket.on("login", function(data){
@@ -36,8 +45,10 @@ socket.on("chat", function(data){
   }
 });
 
-socket.on("logout", function(data){
-
+socket.on("logout", function(userid){
+  console.log(userid+"logged out");
+  removePlayerById(userid);
+  //delete worldObjs[userid];
 });
 
 socket.on('move', function(data){
@@ -48,18 +59,6 @@ socket.on('move', function(data){
     console.log(data.userid + ": user not found");
   }
 });
-
-// when chats
-/*
-$("form").submit(function(e){
-  e.preventDefault();
-  var $msgForm = $("#msgForm");
-
-  socket.emit("chat", {msg:$msgForm.val()});
-  $msgForm.val("");
-});
-*/
-
 
 var canvas = document.getElementsByTagName("canvas")[0],
   // canvas dimensions
