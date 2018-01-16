@@ -46,7 +46,7 @@ socket.on("chat", function(data){
 });
 
 socket.on("logout", function(userid){
-  console.log(userid+"logged out");
+  console.log(userid+" logged out");
   removePlayerById(userid);
 });
 
