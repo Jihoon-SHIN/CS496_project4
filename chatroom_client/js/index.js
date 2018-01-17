@@ -250,6 +250,7 @@ cmdObj = function(name, args, desc) {
 cmd = [
   new cmdObj("clear", "", "clear chat"),
   new cmdObj("help", "", "get help menu"),
+  new cmdObj("msg", "[player] [message]", "send private [message] to [player]")
 ],
 structure = function(width, height, x, y, backArea, img, isAnim, frames) {
   this.w = width;
