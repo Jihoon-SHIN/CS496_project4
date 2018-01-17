@@ -13,19 +13,24 @@ canvas, form, div {
 canvas {
 	display: block;
 }
-form {
+#canvasTxt {
 	background-color: #048;
 }
-input, button {
+#inputTxt{
 	border: 0;
 	vertical-align: middle;
-}
-input {
 	appearance: none;
 	-webkit-appearance: none;
 	width: 75%;
 }
-button {
+#button1{
+	border: 0;
+	vertical-align: middle;
+	color: #fff;
+}
+#button2{
+	border: 0;
+	vertical-align: middle;
 	color: #fff;
 }
 .send {

@@ -15,13 +15,23 @@ function removePlayerByName(name){
   }
 }
 
+function removeElemByKey(arr, key){
+  for(var i in arr){
+    if(arr[i] == key){
+      arr.splice(i, 1);
+      return;
+    }
+  }
+}
+
 function makeRandomName() {
   var adjectiveList = ["웃는", "기쁜", "슬픈", "우울한", "멋진", "섹시한", "못생긴", "착한", "나쁜", "즐거운", "외로운", "인싸", "아싸","소심한"];
   var nameList = ["고양이", "호랑이", "사자", "강아지", "카이생", "돌멩이", "하이에나", "토끼", "다람쥐", "햄스터", "돼지", "들소", "알파카"];
   var adjectiveIndex = randNum(0, adjectiveList.length-1);
   var nameIndex = randNum(0, nameList.length-1);
   console.log(adjectiveIndex, nameIndex);
-  var name = adjectiveList[adjectiveIndex]+""+nameList[nameIndex];
+
+  var name = adjectiveList[adjectiveIndex]+nameList[nameIndex];
   return name;
 }
 
@@ -93,6 +103,8 @@ var canvas = document.getElementsByTagName("canvas")[0],
   s = 2;
 var ctx = canvas.getContext("2d");
 
+var pushedKey = [];
+
 // set canvas dimensions with scale
 canvas.width = w * s;
 canvas.height = h * s;
@@ -162,23 +174,27 @@ var chatBar = {
       log = document.createElement("div");
 
     // set up form elements and translate them to inside canvas
+    form.setAttribute("id","canvasTxt");
     form.action = "";
     form.style.padding = this.margin + "px";
     form.style.width = (canvas.width / s) + "px";
     form.style.height = (this.barH) + "px";
     form.style.transform = "translateY(" + (-this.barH) + "px)";
     // text input
+    field.setAttribute("id","inputTxt");
     field.type = "text";
     field.style.fontSize = (this.barH * 0.4) + "px";
     field.style.height = (this.barH - this.margin * 2) + "px";
     field.style.padding = "0 " + this.margin + "px";
     field.maxLength = 64;
     // send button
+    btn1.setAttribute("id","button1");
     btn1.className = "send";
     btn1.style.fontSize = (this.barH * 0.4) + "px";
     btn1.style.height = (this.barH - this.margin * 2) + "px";
     btn1.disabled = "disabled";
     // view chat button
+    btn2.setAttribute("id","button2");
     btn2.className = "view-chat";
     btn2.style.fontSize = (this.barH * 0.25) + "px";
     btn2.style.height = (this.barH - this.margin * 2) + "px";
@@ -253,12 +269,12 @@ structures = [
   new structure(300, 200, w / 2 - 150, h/2-100, 70, images[1], true, 12)
 ],
 worldObjs = [],
-control = function(avatar, e) {
+control = function(avatar) {
   // avatar.dir values: 0 = up, 1 = right, 2 = down, 3 = left
-  if (e && !chatBar.active) {
+  if (!chatBar.active) {
     avatar.isMoving = true;
     avatar.canMove = true;
-    switch (e.keyCode) {
+    switch (pushedKey[pushedKey.length-1]) {
       case 37:
         avatar.dir = 3;
         break;
@@ -372,12 +388,13 @@ drawScreen = function() {
 },
 runDisplay = function() {
   drawScreen();
+  if(pushedKey.length != 0)
+    control(player);
   setTimeout(runDisplay, 1000 / 60);
 },
 
 start = function() {
   chatBar.create();
-  // load player and NPCs
 
   // load structures
   let avatars = worldObjs.length;
@@ -398,8 +415,13 @@ start = function() {
   runDisplay();
 };
 
+socket.on('loginFail', function(){
+  alert("Change Your Name");
+  window.location.reload();
+});
+
 socket.on('loginSuccess', function(name) {
-  player = new Avatar(name, 0, 0, randNum(10, w-10), randNum(10, h-30),
+  player = new Avatar(name, Mygender, 0, randNum(10, w-10), randNum(10, h-30),
   1, dir=2, isSelf=true);
   worldObjs[0] = player;
   socket.emit("login", {
@@ -411,13 +433,25 @@ socket.on('loginSuccess', function(name) {
     curFrame: player.curFrame,
     dir: player.dir
   });
+
   start();
+
 
   // player moving
   document.addEventListener("keydown", function(e) {
     let field = document.querySelector("input"),
       send = document.querySelector(".send"),
       viewChat = document.querySelector(".view-chat");
+
+    if(e.keyCode >= 37 && e.keyCode <= 40){
+      if(!pushedKey.includes(e.keyCode)){
+        pushedKey.push(e.keyCode);
+      }
+    }
+
+    if(e.keyCode == 16){
+      player.speed=6;
+    }
 
     // Send button availability
     setTimeout(function() {
@@ -426,7 +460,7 @@ socket.on('loginSuccess', function(name) {
 
     // move only if not using chat
     if (!chatBar.active) {
-      control(player, e);
+      //control(player);
 
       // surf through own input history
     } else if (chatBar.history.length > 0) {
@@ -471,8 +505,16 @@ socket.on('loginSuccess', function(name) {
     }
   });
   // player stop moving
-  document.addEventListener("keyup", function() {
-    stopControl(player);
+  document.addEventListener("keyup", function(e) {
+    if(e.keyCode == 16){
+      player.speed = 4;
+    }
+
+    removeElemByKey(pushedKey, e.keyCode);
+    console.log("delete : "+e.keyCode);
+    console.log(pushedKey);
+    if(pushedKey.length == 0)
+      stopControl(player);
   });
   // player send chat messages
   document.querySelector("input").addEventListener("focus", function() {
@@ -522,6 +564,7 @@ socket.on('loginSuccess', function(name) {
 });
 
 
+<<<<<<< HEAD
 window.addEventListener("keydown", function(e) {
     // space and arrow keys
     if([37, 38, 39, 40].indexOf(e.keyCode) > -1) {
@@ -531,3 +574,31 @@ window.addEventListener("keydown", function(e) {
 
 var name = makeRandomName();
 socket.emit('nameCheck', name);
+=======
+var Randomname = makeRandomName();
+document.querySelector('#username').placeholder = Randomname;
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelector('#form').addEventListener("submit",function(e){
+    e.preventDefault();
+    var MyName = document.querySelector('#username').value;
+    if(MyName==""){
+      MyName = Randomname;
+    }
+    var lst = MyName.split(" ");
+    if(lst.length>1){
+      MyName="";
+      for (var index in lst){
+        MyName += lst[index];
+      }
+    }
+    var genderStr = document.querySelector('input[name="gender"]:checked').value;
+    if(genderStr == "m"){
+      Mygender = 0;
+    }else{
+      Mygender = 1;
+    }
+    socket.emit('nameCheck', MyName);
+    document.querySelector('#form').style.display="none";
+  });
+});
+>>>>>>> aa0c001dd8ae00c769ac14bcb44bf31722e623e7
