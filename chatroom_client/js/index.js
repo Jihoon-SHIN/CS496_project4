@@ -137,7 +137,8 @@ var chatBar = {
   logShow: function() {
     try {
       let log = document.querySelector(".chat-log").style,
-        field = document.querySelector("#inputTxt");
+        field = document.querySelector('#inputTxt');
+
       log.display = "flex";
       this.active = true;
       this.showLog = true;
@@ -149,7 +150,8 @@ var chatBar = {
   logHide: function() {
     try {
       let log = document.querySelector(".chat-log").style,
-        field = document.querySelector("#inputTxt");
+        field = document.querySelector('#inputTxt');
+
 
       log.display = "none";
       this.active = false;
@@ -182,13 +184,14 @@ var chatBar = {
     form.style.transform = "translateY(" + (-this.barH) + "px)";
     // text input
     field.setAttribute("id","inputTxt");
+    field.className = "field";
     field.type = "text";
     field.style.fontSize = (this.barH * 0.4) + "px";
     field.style.height = (this.barH - this.margin * 2) + "px";
     field.style.padding = "0 " + this.margin + "px";
     field.maxLength = 64;
     // send button
-    btn1.setAttribute("id","button1");
+    //btn1.setAttribute("id","button1");
     btn1.className = "send";
     btn1.style.fontSize = (this.barH * 0.4) + "px";
     btn1.style.height = (this.barH - this.margin * 2) + "px";
@@ -436,7 +439,7 @@ socket.on('loginFail', function(){
 });
 
 socket.on('loginSuccess', function(name) {
-  player = new Avatar(name, Mygender, 0, randNum(10, w-10), randNum(10, h-30),
+  player = new Avatar(name, Mygender, randNum(0, 3), randNum(10, w-10), randNum(10, h-30),
   1, dir=2, isSelf=true);
   worldObjs[0] = player;
   socket.emit("login", {
@@ -454,7 +457,7 @@ socket.on('loginSuccess', function(name) {
 
   // player moving
   document.addEventListener("keydown", function(e) {
-    let field = document.querySelector("#inputTxt"),
+    let field = document.querySelector('#inputTxt'),
       send = document.querySelector(".send"),
       viewChat = document.querySelector(".view-chat");
 
@@ -477,7 +480,7 @@ socket.on('loginSuccess', function(name) {
 
     // move only if not using chat
     if (!chatBar.active) {
-      //control(player);
+      // control(player);
 
       // surf through own input history
     } else if (chatBar.history.length > 0) {
@@ -534,10 +537,11 @@ socket.on('loginSuccess', function(name) {
       stopControl(player);
   });
   // player send chat messages
-  document.querySelector("#inputTxt").addEventListener("focus", function() {
+
+  document.querySelector('#inputTxt').addEventListener("focus", function() {
     chatBar.active = true;
   });
-  document.querySelector("#inputTxt").addEventListener("blur", function() {
+  document.querySelector('#inputTxt').addEventListener("blur", function() {
     chatBar.active = false;
   });
   document.querySelector(".send").addEventListener("click", function(e) {
