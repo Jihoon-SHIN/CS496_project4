@@ -563,8 +563,6 @@ socket.on('loginSuccess', function(name) {
   });
 });
 
-
-<<<<<<< HEAD
 window.addEventListener("keydown", function(e) {
     // space and arrow keys
     if([37, 38, 39, 40].indexOf(e.keyCode) > -1) {
@@ -572,9 +570,6 @@ window.addEventListener("keydown", function(e) {
     }
 }, false);
 
-var name = makeRandomName();
-socket.emit('nameCheck', name);
-=======
 var Randomname = makeRandomName();
 document.querySelector('#username').placeholder = Randomname;
 document.addEventListener('DOMContentLoaded',function(){
@@ -601,4 +596,3 @@ document.addEventListener('DOMContentLoaded',function(){
     document.querySelector('#form').style.display="none";
   });
 });
->>>>>>> aa0c001dd8ae00c769ac14bcb44bf31722e623e7
