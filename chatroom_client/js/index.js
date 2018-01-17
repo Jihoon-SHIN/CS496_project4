@@ -392,8 +392,23 @@ runDisplay = function() {
     control(player);
   setTimeout(runDisplay, 1000 / 60);
 },
-
+bgm, bgmList = [
+  'above_the_treetops.mp3',
+  'cava_bien.mp3',
+  'floral_life.mp3',
+  'rest_n_peace.mp3',
+  'title.mp3'],
+bgmIndex = 0, bgmPath = 'media/',
+playNextTrack = function(){
+  bgmIndex++;
+  if(bgmIndex >= bgmList.length)
+    bgmIndex = 0;
+  bgm = new Audio(bgmPath+bgmList[bgmIndex]);
+  bgm.play();
+  bgm.addEventListener('ended', playNextTrack);
+},
 start = function() {
+  playNextTrack();
   chatBar.create();
 
   // load structures
