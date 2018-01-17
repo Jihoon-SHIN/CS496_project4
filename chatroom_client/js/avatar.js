@@ -88,9 +88,11 @@ function Avatar(name, gender, skinTone, x, y, curFrame, dir, isSelf) {
           case "msgTo":
             let msgTo = msg.split(" "),
             from = msgTo[1],
-            chatM = msgTo[2],
+            chatM = "";
+            for(var j=2; j<msgTo.length ;j++){
+              chatM += msgTo[j] + " ";
+            }
             chatMM = "[수신]"+ from + ": " + chatM;
-            console.log(chatMM);
             newEntry.className = "whisper-chat";
             newEntry.appendChild(document.createTextNode(chatMM));
             screenText.updateText(chatMM, h-chatBar.barH, screenText.fontS*2, "#4f4");
@@ -100,14 +102,12 @@ function Avatar(name, gender, skinTone, x, y, curFrame, dir, isSelf) {
             fromM = msgFrom[1],
             chatF = msgFrom[2],
             chatFM = "There is no"+" "+fromM;
-            console.log(chatFM);
             newEntry.className = "no-player-chat";
             newEntry.appendChild(document.createTextNode(chatFM));
             screenText.updateText(chatFM, h-chatBar.barH, screenText.fontS*2, "#f44");
             break;
           default:
             let cmdErr = "Invalid command. See /help for a list of available commands.";
-
             newEntry.className = "error-text";
             newEntry.appendChild(document.createTextNode(cmdErr));
             screenText.updateText(cmdErr, h - chatBar.barH, screenText.fontS * 2, "#f44");

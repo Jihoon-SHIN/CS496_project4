@@ -33,9 +33,47 @@ canvas {
 	vertical-align: middle;
 	color: #fff;
 }
+#form{
+	margin : 10%;
+	margin-left: 40%;
+	font-size: 150%;
+}
+#welcome{
+	font-size: 300%;
+}
+#username{
+	width: 35%;
+	font-size: 100%;
+}
+#enter{
+	font-size: 80%;
+	width: 45%;
+}
+input[type=radio]{
+	width:5%;
+}
+/* form {
+	background-color: #048;
+}
+input, button {
+	border: 0;
+	vertical-align: middle;
+}
+input {
+	appearance: none;
+	-webkit-appearance: none;
+	width: 75%;
+}
+button {
+	color: #fff;
+} */
+
 .send {
 	background-color: #5b5;
 	width: 15%;
+	border: 0;
+	vertical-align: middle;
+	color: #fff;
 }
 .send:hover {
 	background-color: #6c6;
