@@ -137,7 +137,7 @@ var chatBar = {
   logShow: function() {
     try {
       let log = document.querySelector(".chat-log").style,
-        field = document.querySelector("input");
+        field = document.querySelector("#inputTxt");
       log.display = "flex";
       this.active = true;
       this.showLog = true;
@@ -149,7 +149,7 @@ var chatBar = {
   logHide: function() {
     try {
       let log = document.querySelector(".chat-log").style,
-        field = document.querySelector("input");
+        field = document.querySelector("#inputTxt");
 
       log.display = "none";
       this.active = false;
@@ -439,10 +439,11 @@ socket.on('loginSuccess', function(name) {
 
   // player moving
   document.addEventListener("keydown", function(e) {
-    let field = document.querySelector("input"),
+    let field = document.querySelector("#inputTxt"),
       send = document.querySelector(".send"),
       viewChat = document.querySelector(".view-chat");
 
+    console.log(field);
     if(e.keyCode >= 37 && e.keyCode <= 40){
       if(!pushedKey.includes(e.keyCode)){
         pushedKey.push(e.keyCode);
@@ -452,6 +453,7 @@ socket.on('loginSuccess', function(name) {
     if(e.keyCode == 16){
       player.speed=6;
     }
+
 
     // Send button availability
     setTimeout(function() {
@@ -511,21 +513,21 @@ socket.on('loginSuccess', function(name) {
     }
 
     removeElemByKey(pushedKey, e.keyCode);
-    console.log("delete : "+e.keyCode);
-    console.log(pushedKey);
+    // console.log("delete : "+e.keyCode);
+    // console.log(pushedKey);
     if(pushedKey.length == 0)
       stopControl(player);
   });
   // player send chat messages
-  document.querySelector("input").addEventListener("focus", function() {
+  document.querySelector("#inputTxt").addEventListener("focus", function() {
     chatBar.active = true;
   });
-  document.querySelector("input").addEventListener("blur", function() {
+  document.querySelector("#inputTxt").addEventListener("blur", function() {
     chatBar.active = false;
   });
   document.querySelector(".send").addEventListener("click", function(e) {
     e.preventDefault();
-    let field = document.querySelector("input");
+    let field = document.querySelector('#inputTxt');
 
     if (field.value.length > 0) {
       player.sendMsg(field.value);
