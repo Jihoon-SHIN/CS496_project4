@@ -23,7 +23,7 @@ io.on('connection', function(socket){
     }
     if(chkNameDuplicated(name)){
       console.log("Name "+name+" duplicate");
-      socket.emit('rejectName', null);
+      socket.emit('loginFail', null);
       return;
     }
     socket.emit('loginSuccess', name);

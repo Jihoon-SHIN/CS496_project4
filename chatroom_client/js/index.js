@@ -15,6 +15,15 @@ function removePlayerByName(name){
   }
 }
 
+function removeElemByKey(arr, key){
+  for(var i in arr){
+    if(arr[i] == key){
+      arr.splice(i, 1);
+      return;
+    }
+  }
+}
+
 function makeRandomName() {
   var adjectiveList = ["웃는", "기쁜", "슬픈", "우울한", "멋진", "섹시한", "못생긴", "착한", "나쁜", "즐거운", "외로운", "인싸", "아싸"];
   var nameList = ["고양이", "호랑이", "사자", "강아지", "카이생", "돌멩이", "하이에나", "토끼", "다람쥐", "햄스터", "돼지", "들소", "알파카"];
@@ -67,6 +76,8 @@ var canvas = document.getElementsByTagName("canvas")[0],
   // scale, keep at 2 for best retina results
   s = 2;
 var ctx = canvas.getContext("2d");
+
+var pushedKey = [];
 
 // set canvas dimensions with scale
 canvas.width = w * s;
@@ -228,12 +239,12 @@ structures = [
   new structure(300, 200, w / 2 - 150, h/2-100, 70, images[1], true, 12)
 ],
 worldObjs = [],
-control = function(avatar, e) {
+control = function(avatar) {
   // avatar.dir values: 0 = up, 1 = right, 2 = down, 3 = left
-  if (e && !chatBar.active) {
+  if (!chatBar.active) {
     avatar.isMoving = true;
     avatar.canMove = true;
-    switch (e.keyCode) {
+    switch (pushedKey[pushedKey.length-1]) {
       case 37:
         avatar.dir = 3;
         break;
@@ -347,12 +358,13 @@ drawScreen = function() {
 },
 runDisplay = function() {
   drawScreen();
+  if(pushedKey.length != 0)
+    control(player);
   setTimeout(runDisplay, 1000 / 60);
 },
 
 start = function() {
   chatBar.create();
-  // load player and NPCs
 
   // load structures
   let avatars = worldObjs.length;
@@ -394,6 +406,16 @@ socket.on('loginSuccess', function(name) {
       send = document.querySelector(".send"),
       viewChat = document.querySelector(".view-chat");
 
+    if(e.keyCode >= 37 && e.keyCode <= 40){
+      if(!pushedKey.includes(e.keyCode)){
+        pushedKey.push(e.keyCode);
+      }
+    }
+
+    if(e.keyCode == 16){
+      player.speed=6;
+    }
+
     // Send button availability
     setTimeout(function() {
       send.disabled = field.value.length > 0 ? "" : "disabled";
@@ -401,7 +423,7 @@ socket.on('loginSuccess', function(name) {
 
     // move only if not using chat
     if (!chatBar.active) {
-      control(player, e);
+      //control(player);
 
       // surf through own input history
     } else if (chatBar.history.length > 0) {
@@ -446,8 +468,16 @@ socket.on('loginSuccess', function(name) {
     }
   });
   // player stop moving
-  document.addEventListener("keyup", function() {
-    stopControl(player);
+  document.addEventListener("keyup", function(e) {
+    if(e.keyCode == 16){
+      player.speed = 4;
+    }
+
+    removeElemByKey(pushedKey, e.keyCode);
+    console.log("delete : "+e.keyCode);
+    console.log(pushedKey);
+    if(pushedKey.length == 0)
+      stopControl(player);
   });
   // player send chat messages
   document.querySelector("input").addEventListener("focus", function() {
