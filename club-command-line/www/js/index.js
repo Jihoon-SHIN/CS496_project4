@@ -1,68 +1,48 @@
-function findPlayerByName(name){
-  for(var p in worldObjs){
-    if(worldObjs[p].name == name){
-      return worldObjs[p];
-    }
-  }
-}
-
-function removePlayerByName(name){
-  for(var p in worldObjs){
-    if(worldObjs[p].name == name){
-      worldObjs.splice(p, 1);
-      return;
-    }
-  }
-}
-
-function makeRandomName() {
-  var adjectiveList = ["웃는", "기쁜", "슬픈", "우울한", "멋진", "섹시한", "못생긴", "착한", "나쁜", "즐거운", "외로운", "인싸", "아싸"];
-  var nameList = ["고양이", "호랑이", "사자", "강아지", "카이생", "돌멩이", "하이에나", "토끼", "다람쥐", "햄스터", "돼지", "들소", "알파카"];
-  var adjectiveIndex = randNum(0, adjectiveList.length-1);
-  var nameIndex = randNum(0, nameList.length-1);
-  console.log(adjectiveIndex, nameIndex);
-  var name = adjectiveList[adjectiveIndex]+nameList[nameIndex];
-  return name;
-}
-
+/*
 var socket = io();
+socket.emit("login", {
+  name: makeRandomName(),
+  userid: "id"
+});
 
-socket.on("anotherUser", function(data){
-  worldObjs.push(new Avatar(data.name, data.gender, data.skinTone, data.x,
-    data.y, data.curFrame, data.dir, false));
-  console.log("another User : "+ data.name);
+socket.on("login", function(data){
+  $("#chatLogs").append("<div><strong>"+data+"</strong> has joined</div>");
 });
 
 socket.on("chat", function(data){
-  //show chat
-  let chatPlayer = findPlayerByName(data.name);
-  console.log(data.chat);
-  if(chatPlayer){
-    chatPlayer.sendMsg(data.chat);
-    chatBar.history.push(data.chat);
-  }else{
-    console.log(data.name+" : user not found");
+  $("#chatLogs").append("<div><strong>"+data.from.name+"</strong> : "+data.msg+"</div>");
+});
+
+$("form").submit(function(e){
+  e.preventDefault();
+  var $msgForm = $("#msgForm");
+
+  socket.emit("chat", {msg:$msgForm.val()});
+  $msgForm.val("");
+});
+
+function makeRandomName() {
+  var name = "";
+  var possible = "abcdefghijklmnopqrstuvwxyz";
+  for(var i = 0; i<3; i++){
+    name += possible.charAt(Math.floor(Math.random()*possible.length));
   }
-});
+  return name;
+}*/
 
-socket.on("logout", function(name){
-  console.log(name+" logged out");
-  removePlayerByName(name);
-});
-
-socket.on('move', function(data){
-  let movingPlayer = findPlayerByName(data.name);
-  if(movingPlayer){
-    movingPlayer.setState(data);
-  } else {
-    console.log(data.name + ": user not found");
+function makeRandomName() {
+  var name = "";
+  var possible = "abcdefghijklmnopqrstuvwxyz";
+  for(var i = 0; i<3; i++){
+    name += possible.charAt(Math.floor(Math.random()*possible.length));
   }
-});
-
+  return name;
+}
+var socket = io();
 var canvas = document.getElementsByTagName("canvas")[0],
   // canvas dimensions
   w = 1500,
-  h = 900,
+  h = 940,
   // scale, keep at 2 for best retina results
   s = 2;
 var ctx = canvas.getContext("2d");
@@ -74,6 +54,9 @@ canvas.style.width = w + "px";
 canvas.style.height = h + "px";
 ctx.scale(s, s);
 
+/* Main app code */
+// all artwork done by me :)
+
 var sprites = [
   "http://jonkantner.com/experiments/vwc/grass.svg",
   "http://jonkantner.com/experiments/vwc/fountain.svg",
@@ -81,10 +64,10 @@ var sprites = [
   "http://jonkantner.com/experiments/vwc/chibi_f.svg"
 ];
 
-images = [];
+window.images = [];
 for (var sp in sprites) {
-  images.push(new Image());
-  images[sp].src = sprites[sp];
+  window.images.push(new Image());
+  window.images[sp].src = sprites[sp];
 }
 
 var chatBar = {
@@ -136,27 +119,23 @@ var chatBar = {
       log = document.createElement("div");
 
     // set up form elements and translate them to inside canvas
-    form.setAttribute("id","canvasTxt");
     form.action = "";
     form.style.padding = this.margin + "px";
     form.style.width = (canvas.width / s) + "px";
     form.style.height = (this.barH) + "px";
     form.style.transform = "translateY(" + (-this.barH) + "px)";
     // text input
-    field.setAttribute("id","inputTxt");
     field.type = "text";
     field.style.fontSize = (this.barH * 0.4) + "px";
     field.style.height = (this.barH - this.margin * 2) + "px";
     field.style.padding = "0 " + this.margin + "px";
     field.maxLength = 64;
     // send button
-    btn1.setAttribute("id","button1");
     btn1.className = "send";
     btn1.style.fontSize = (this.barH * 0.4) + "px";
     btn1.style.height = (this.barH - this.margin * 2) + "px";
     btn1.disabled = "disabled";
     // view chat button
-    btn2.setAttribute("id","button2");
     btn2.className = "view-chat";
     btn2.style.fontSize = (this.barH * 0.25) + "px";
     btn2.style.height = (this.barH - this.margin * 2) + "px";
@@ -177,6 +156,7 @@ var chatBar = {
     btn2.appendChild(document.createTextNode("View Chat"));
   }
 },
+
 screenText = {
   text: "",
   color: "#fff",
@@ -224,6 +204,7 @@ structure = function(width, height, x, y, backArea, img, isAnim, frames) {
 randNum = function(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 },
+
 structures = [
   new structure(w, 50, 0, -40),
   new structure(10, h - chatBar.barH - 10, 0, 10),
@@ -336,10 +317,8 @@ drawScreen = function() {
   for (var wo in worldObjs) {
     // to determine if avatar, test for name
     if (worldObjs[wo].name) {
-      if(worldObjs[wo].isSelf){
-        worldObjs[wo].moveAvatar();
-      }
       worldObjs[wo].drawAvatar();
+      worldObjs[wo].moveAvatar();
     } else {
       drawStructure(worldObjs[wo]);
     }
@@ -356,7 +335,7 @@ runDisplay = function() {
 start = function() {
   chatBar.create();
   // load player and NPCs
-
+  worldObjs.push(player);
   // load structures
   let avatars = worldObjs.length;
   for (var ss in structures) {
@@ -376,153 +355,112 @@ start = function() {
   runDisplay();
 };
 
-socket.on('loginFail', function(name){
-  console.log("loginFail client IN" +name);
-  alert("Change Your Name");
-  window.location.reload();
+
+var _name = makeRandomName();
+socket.emit("login",{
+  name: _name,
+  gender: 0,
+  skin: 0,
 });
 
-socket.on('loginSuccess', function(name) {
-  player = new Avatar(name, Mygender, 0, randNum(10, w-10), randNum(10, h-30),
-  1, dir=2, isSelf=true);
-  worldObjs[0] = player;
-  socket.emit("login", {
-    name: player.name,
-    gender: player.gender,
-    skinTone: player.skinTone,
-    x: player.x,
-    y: player.y,
-    curFrame: player.curFrame,
-    dir: player.dir
-  });
-
-  start();
+player = new Avatar(_name, 0, 0, 30, 60, 4, 28, 2, w / 2 - 15, h * 0.8 - chatBar.barH);
+//worldObjs.push(player);
+socket.on("login",function(data){
+  Player = new Avatar(data.name, data.skin, data.gender, 30, 60, 4, 28, 2, w / 2 - 15, h * 0.8 - chatBar.barH);
+  worldObjs.push(Player);
+});
+start();
 
 
-  // player moving
-  document.addEventListener("keydown", function(e) {
-    let field = document.querySelector("input"),
-      send = document.querySelector(".send"),
-      viewChat = document.querySelector(".view-chat");
+// player moving
+document.addEventListener("keydown", function(e) {
+  let field = document.querySelector("input"),
+    send = document.querySelector(".send"),
+    viewChat = document.querySelector(".view-chat");
 
-    // Send button availability
-    setTimeout(function() {
-      send.disabled = field.value.length > 0 ? "" : "disabled";
-    }, 10);
+  // Send button availability
+  setTimeout(function() {
+    send.disabled = field.value.length > 0 ? "" : "disabled";
+  }, 10);
 
-    // move only if not using chat
-    if (!chatBar.active) {
-      control(player, e);
+  // move only if not using chat
+  if (!chatBar.active) {
+    control(player, e);
 
-      // surf through own input history
-    } else if (chatBar.history.length > 0) {
-      // back
-      if (e.keyCode == 38 && chatBar.curHistoryItem != chatBar.history.length - 1) {
-        ++chatBar.curHistoryItem;
-        field.value = chatBar.history[chatBar.history.length - chatBar.curHistoryItem - 1];
-        // move insertion point to end
-        e.preventDefault();
-        if (typeof field.selectionStart == "number") {
-          field.selectionStart = field.selectionEnd = field.value.length;
-        } else if (typeof field.createTextRange != "undefined") {
-          field.focus();
-          let range = field.createTextRange();
-          range.collapse(true);
-          range.select();
-        }
-        // forward
-      } else if (e.keyCode == 40 && chatBar.curHistoryItem > -1) {
-        --chatBar.curHistoryItem;
-        field.value = chatBar.curHistoryItem == -1 ? "" : chatBar.history[chatBar.history.length - chatBar.curHistoryItem - 1];
-      }
-    }
-
-    // toggle chat with V
-    if (e.keyCode == 86 && !chatBar.active) {
+    // surf through own input history
+  } else if (chatBar.history.length > 0) {
+    // back
+    if (e.keyCode == 38 && chatBar.curHistoryItem != chatBar.history.length - 1) {
+      ++chatBar.curHistoryItem;
+      field.value = chatBar.history[chatBar.history.length - chatBar.curHistoryItem - 1];
+      // move insertion point to end
       e.preventDefault();
-      chatBar.logToggle();
-
-      // quickly start typing command
-    } else if (e.keyCode == 191 && !chatBar.active) {
-      field.value = "";
-      chatBar.logToggle();
-
-      // close chat using Esc
-    } else if (e.keyCode == 27) {
-      chatBar.active = false;
-      chatBar.logHide();
-      field.blur();
-      send.blur();
-      viewChat.blur();
-    }
-  });
-  // player stop moving
-  document.addEventListener("keyup", function() {
-    stopControl(player);
-  });
-  // player send chat messages
-  document.querySelector("input").addEventListener("focus", function() {
-    chatBar.active = true;
-  });
-  document.querySelector("input").addEventListener("blur", function() {
-    chatBar.active = false;
-  });
-  document.querySelector(".send").addEventListener("click", function(e) {
-    e.preventDefault();
-    let field = document.querySelector("input");
-
-    if (field.value.length > 0) {
-      player.sendMsg(field.value);
-
-      socket.emit("chat", {
-        name : player.name,
-        chat : field.value
-      });
-
-      chatBar.history.push(field.value);
-      chatBar.curHistoryItem = -1;
-      if (!chatBar.showLog) {
-        chatBar.active = false;
-        field.blur();
+      if (typeof field.selectionStart == "number") {
+        field.selectionStart = field.selectionEnd = field.value.length;
+      } else if (typeof field.createTextRange != "undefined") {
+        field.focus();
+        let range = field.createTextRange();
+        range.collapse(true);
+        range.select();
       }
+      // forward
+    } else if (e.keyCode == 40 && chatBar.curHistoryItem > -1) {
+      --chatBar.curHistoryItem;
+      field.value = chatBar.curHistoryItem == -1 ? "" : chatBar.history[chatBar.history.length - chatBar.curHistoryItem - 1];
     }
-    field.value = "";
-  });
-  // show/hide chat using button
-  document.querySelector(".view-chat").addEventListener("click", function(e) {
+  }
+
+  // toggle chat with V
+  if (e.keyCode == 86 && !chatBar.active) {
     e.preventDefault();
     chatBar.logToggle();
-  });
-  // also hide log if clicked outside
-  canvas.addEventListener("click", function() {
+
+    // quickly start typing command
+  } else if (e.keyCode == 191 && !chatBar.active) {
+    field.value = "";
+    chatBar.logToggle();
+
+    // close chat using Esc
+  } else if (e.keyCode == 27) {
+    chatBar.active = false;
     chatBar.logHide();
-  });
+    field.blur();
+    send.blur();
+    viewChat.blur();
+  }
 });
+// player stop moving
+document.addEventListener("keyup", function() {
+  stopControl(player);
+});
+// player send chat messages
+document.querySelector("input").addEventListener("focus", function() {
+  chatBar.active = true;
+});
+document.querySelector("input").addEventListener("blur", function() {
+  chatBar.active = false;
+});
+document.querySelector(".send").addEventListener("click", function(e) {
+  e.preventDefault();
+  let field = document.querySelector("input");
 
-
-var Randomname = makeRandomName();
-document.querySelector('#username').placeholder = Randomname;
-document.addEventListener('DOMContentLoaded',function(){
-  document.querySelector('#form').addEventListener("submit",function(e){
-    e.preventDefault();
-    var MyName = document.querySelector('#username').value;
-    if(MyName==""){
-      MyName = Randomname;
+  if (field.value.length > 0) {
+    player.sendMsg(field.value);
+    chatBar.history.push(field.value);
+    chatBar.curHistoryItem = -1;
+    if (!chatBar.showLog) {
+      chatBar.active = false;
+      field.blur();
     }
-    var lst = MyName.split(" ");
-    if(lst.length>1){
-      MyName="";
-      for (var index in lst){
-        MyName += lst[index];
-      }
-    }
-    var genderStr = document.querySelector('input[name="gender"]:checked').value;
-    if(genderStr == "m"){
-      Mygender = 0;
-    }else{
-      Mygender = 1;
-    }
-    socket.emit('nameCheck', MyName);
-    document.querySelector('#form').style.display="none";
-  });
+  }
+  field.value = "";
+});
+// show/hide chat using button
+document.querySelector(".view-chat").addEventListener("click", function(e) {
+  e.preventDefault();
+  chatBar.logToggle();
+});
+// also hide log if clicked outside
+canvas.addEventListener("click", function() {
+  chatBar.logHide();
 });
