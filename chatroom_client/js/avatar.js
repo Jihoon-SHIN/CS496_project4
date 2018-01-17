@@ -65,7 +65,45 @@ function Avatar(name, gender, skinTone, x, y, curFrame, dir, isSelf) {
             let clearMsg = "Chat cleared";
             chatLog.innerHTML = "";
             newEntry.appendChild(document.createTextNode(clearMsg));
-            screenText.updateText(clearMsg, h - chatBar.barH, screenText.fontS * 2);
+            break;
+
+          case "msg":
+            let msgArgs = msg.split(" "),
+            name = msgArgs[1],
+            chat ="";
+
+            for(var i=2; i<msgArgs.length ;i++){
+              chat += msgArgs[i] + " ";
+            }
+            chatMsg = "[발신]"+ name + ": " + chat;
+            newEntry.className = "whisper-chat";
+            newEntry.appendChild(document.createTextNode(chatMsg));
+            screenText.updateText(chatMsg, h-chatBar.barH, screenText.fontS*2, "#4f4");
+            socket.emit("msg", {
+              from : this.name,
+              to: name,
+              chat : chat
+            });
+            break;
+          case "msgTo":
+            let msgTo = msg.split(" "),
+            from = msgTo[1],
+            chatM = msgTo[2],
+            chatMM = "[수신]"+ from + ": " + chatM;
+            console.log(chatMM);
+            newEntry.className = "whisper-chat";
+            newEntry.appendChild(document.createTextNode(chatMM));
+            screenText.updateText(chatMM, h-chatBar.barH, screenText.fontS*2, "#4f4");
+            break;
+          case "msgFrom":
+            let msgFrom = msg.split(" "),
+            fromM = msgFrom[1],
+            chatF = msgFrom[2],
+            chatFM = "There is no"+" "+fromM;
+            console.log(chatFM);
+            newEntry.className = "no-player-chat";
+            newEntry.appendChild(document.createTextNode(chatFM));
+            screenText.updateText(chatFM, h-chatBar.barH, screenText.fontS*2, "#f44");
             break;
           default:
             let cmdErr = "Invalid command. See /help for a list of available commands.";

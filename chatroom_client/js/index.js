@@ -16,12 +16,12 @@ function removePlayerByName(name){
 }
 
 function makeRandomName() {
-  var adjectiveList = ["웃는", "기쁜", "슬픈", "우울한", "멋진", "섹시한", "못생긴", "착한", "나쁜", "즐거운", "외로운", "인싸", "아싸"];
+  var adjectiveList = ["웃는", "기쁜", "슬픈", "우울한", "멋진", "섹시한", "못생긴", "착한", "나쁜", "즐거운", "외로운", "인싸", "아싸","소심한"];
   var nameList = ["고양이", "호랑이", "사자", "강아지", "카이생", "돌멩이", "하이에나", "토끼", "다람쥐", "햄스터", "돼지", "들소", "알파카"];
   var adjectiveIndex = randNum(0, adjectiveList.length-1);
   var nameIndex = randNum(0, nameList.length-1);
   console.log(adjectiveIndex, nameIndex);
-  var name = adjectiveList[adjectiveIndex]+" "+nameList[nameIndex];
+  var name = adjectiveList[adjectiveIndex]+""+nameList[nameIndex];
   return name;
 }
 
@@ -29,7 +29,7 @@ var socket = io();
 
 socket.on("anotherUser", function(data){
   worldObjs.push(new Avatar(data.name, data.gender, data.skinTone, data.x,
-    data.y, data.curFrame, data.dir, false));
+  data.y, data.curFrame, data.dir, false));
   console.log("another User : "+ data.name);
 });
 
@@ -39,7 +39,6 @@ socket.on("chat", function(data){
   console.log(data.chat);
   if(chatPlayer){
     chatPlayer.sendMsg(data.chat);
-    chatBar.history.push(data.chat);
   }else{
     console.log(data.name+" : user not found");
   }
@@ -52,13 +51,39 @@ socket.on("logout", function(name){
 
 socket.on('move', function(data){
   let movingPlayer = findPlayerByName(data.name);
-  console.log(movingPlayer);
   if(movingPlayer){
     movingPlayer.setState(data);
   } else {
     console.log(data.name + ": user not found");
   }
 });
+
+socket.on('msg', function(data){
+  // let newEntry = document.createElement("span"),
+  // chatLog = document.querySelector(".chat-log");
+  // chatMsg = "[수신]"+ data.from + ": " + data.chat;
+  // console.log(chatMsg);
+  // newEntry.className = "whisper-chat";
+  // // newEntry.appendChild(document.createTextNode(chatMsg));
+  // screenText.updateText(chatMsg, h-chatBar.barH, screenText.fontS*2, "#4f4");
+  // chatLog.insertBefore(newEntry, chatLog.childNodes[0]);
+  let receivePlayer = findPlayerByName(data.to);
+  if(receivePlayer){
+    receivePlayer.sendMsg("/msgTo"+" "+data.from+" "+data.chat);
+  }else{
+    console.log(data.to + ": user not found");
+  }
+});
+
+socket.on('noUser', function(data){
+  let sendPlayer = findPlayerByName(data.from);
+  if(sendPlayer){
+    sendPlayer.sendMsg("/msgFrom"+" "+data.to+" "+data.chat);
+  }else{
+    console.log(data.from +": user error");
+  }
+});
+
 
 var canvas = document.getElementsByTagName("canvas")[0],
   // canvas dimensions
@@ -462,13 +487,21 @@ socket.on('loginSuccess', function(name) {
 
     if (field.value.length > 0) {
       player.sendMsg(field.value);
-
-      socket.emit("chat", {
-        name : player.name,
-        chat : field.value
-      });
-
+      let isCmd = false;
+      // update last message if not a command
+      if (field.value[0] != "/") {
+        isCmd = false;
+      } else {
+        isCmd = true;
+      }
+      if(!isCmd){
+        socket.emit("chat", {
+          name : player.name,
+          chat : field.value
+        });
+      }
       chatBar.history.push(field.value);
+
       chatBar.curHistoryItem = -1;
       if (!chatBar.showLog) {
         chatBar.active = false;
@@ -487,6 +520,14 @@ socket.on('loginSuccess', function(name) {
     chatBar.logHide();
   });
 });
+
+
+window.addEventListener("keydown", function(e) {
+    // space and arrow keys
+    if([37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+        e.preventDefault();
+    }
+}, false);
 
 var name = makeRandomName();
 socket.emit('nameCheck', name);

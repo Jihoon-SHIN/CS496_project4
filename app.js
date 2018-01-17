@@ -51,6 +51,21 @@ io.on('connection', function(socket){
     console.log('Messsage from '+ data.name+' : '+data.chat);
     socket.broadcast.emit('chat', data);
   });
+  socket.on('msg', function(data){
+    console.log('Message from '+ data.from + " to " + data.to +" "+ data.chat);
+    let flag = true;
+    for(var socketid in playerList){
+      var playerData = playerList[socketid];
+      if(playerData.name == data.to){
+        flag = false;
+        io.to(socketid).emit('msg', data);
+      }
+    }
+    if(flag){
+      socket.emit('noUser', data);
+      console.log('There is no '+ data.to);
+    }
+  });
 
   socket.on('forceDisconnect', function () {
     socket.disconnect();
