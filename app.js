@@ -15,6 +15,8 @@ var playerList = {};
 io.on('connection', function(socket){
 
   socket.on('nameCheck', function(name){
+    console.log("nameCheck IN");
+    //console.log(name);
     function chkNameDuplicated(name){
       for(var p in playerList)
         if(playerList[p].name == name)
@@ -26,6 +28,7 @@ io.on('connection', function(socket){
       socket.emit('loginFail', null);
       return;
     }
+    console.log("To loginSuccess server");
     socket.emit('loginSuccess', name);
   });
 

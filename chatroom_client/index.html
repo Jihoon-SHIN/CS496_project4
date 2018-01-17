@@ -4,12 +4,29 @@
     <meta charset="UTF-8">
     <title>Club Command Line</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="shorcut icon" href="">
+
+    <!-- <link href="start.html"> -->
   </head>
   <body>
+    <form action="" id="form" href="http://localhost:3000">
+      <label>Name : <input type='text' placeholder="anything" id='username'/></label>
+      <br/>
+      <label>Gender :
+        <input type='radio' name='gender' value='m'/>Male
+        <input type='radio' name='gender' value='f'/>Female
+      </label><br />
+      <button type="submit">Enter</button>
+    </form>
+
     <canvas></canvas>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="js/avatar.js"></script>
-    <script src="js/index.js"></script>
-    <script src="js/engine.js"></script>
+
+
+    <!-- <script src="js/start.js"></script> -->
   </body>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/avatar.js"></script>
+  <script src="js/index.js"></script>
+  <script src="js/engine.js"></script>
+
 </html>
